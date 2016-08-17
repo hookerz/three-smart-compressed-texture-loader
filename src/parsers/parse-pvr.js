@@ -14,7 +14,7 @@ export function parse(buffer, loadMipmaps) {
   const meta = parseHeader(buffer);
   
   // Decompose the header.
-  const { bpp, format, width, height, faceCount } = meta;
+  const { bpp, format, width, height, isCubemap } = meta;
   const mipmapCount = loadMipmaps ? meta.mipmapCount : 1;
   
   // Derive the number of bytes per image block in the buffer.
@@ -30,7 +30,7 @@ export function parse(buffer, loadMipmaps) {
 
   // Extract each face of the texture, and each mipmap of each face, from the
   // buffer. Build an image object for each one and insert it into the list.
-  for (let i = 0; i < faceCount; i++) {
+  for (let i = 0, n = (isCubemap ? 6 : 1); i < n; i++) {
 
     const image = { width, height, format, mipmaps: [] };
 
@@ -64,16 +64,15 @@ export function parse(buffer, loadMipmaps) {
   const pvr = new CompressedTexture();
 
   pvr.format = format;
+  pvr.isCubemap = isCubemap;
   
-  if (faceCount === 6) {
+  if (isCubemap) {
 
-    pvr.isCubemap = true;
     pvr.mipmaps = null;
     pvr.image = images;
 
   } else {
 
-    pvr.isCubemap = false;
     pvr.mipmaps = images[0].mipmaps;
     pvr.image = images[0];
     
@@ -83,13 +82,12 @@ export function parse(buffer, loadMipmaps) {
 
 }
 
-const HEADER_LENGTH = 13;
 const PVR_V3 = 0x03525650;
 const PVR_V2 = 0x21525650;
 
 function parseHeader(buffer) {
   
-  const header = new Uint32Array(buffer, 0, HEADER_LENGTH);
+  const header = new Uint32Array(buffer, 0, 13);
 
   if (header[0] === PVR_V3) {
 
@@ -145,10 +143,12 @@ function parseHeaderV3(header) {
       
   }
   
+  const isCubemap = faceCount === 6;
+  
   // The raw data offset is off.
   const correctedDataOffset = dataOffset + 52;
   
-  return { bpp, format, width, height, faceCount, mipmapCount, dataOffset: correctedDataOffset };
+  return { bpp, format, width, height, isCubemap, mipmapCount, dataOffset: correctedDataOffset };
 
 }
 
@@ -180,10 +180,12 @@ function parseHeaderV2(header) {
       throw new Error('Unknown PVR pixel format ' + formatFlag);
       
   }
-  
+
+  const isCubemap = faceCount === 6;
+
   // The raw mipmap count is off by one.
   const correctedMipmapCount = mipmapCount + 1;
   
-  return { bpp, format, width, height, faceCount, mipmapCount: correctedMipmapCount, dataOffset };
+  return { bpp, format, width, height, isCubemap, mipmapCount: correctedMipmapCount, dataOffset };
 
 }

@@ -18,9 +18,6 @@ const int32ToFourCC = value =>
     (value >> 24) & 0xff
   );
 
-// The header length in 32-byte ints.
-const HEADER_LENGTH = 31;
-
 // The magic number used to verify the DDS format.
 const DDS_MAGIC = 0x20534444;
 
@@ -61,7 +58,7 @@ export function parse(buffer, loadMipmaps) {
   const meta = parseHeader(buffer);
 
   // Decompose the header.
-  const { format, width, height, faceCount, blockBytes } = meta;
+  const { format, width, height, isCubemap, blockBytes } = meta;
   const mipmapCount = loadMipmaps ? meta.mipmapCount : 1;
 
   // A list of images in the texture. Usually one, but cubemaps have six.
@@ -72,7 +69,7 @@ export function parse(buffer, loadMipmaps) {
 
   // Extract each face of the texture, and each mipmap of each face, from the
   // buffer. Build an image object for each one and insert it into the list.
-  for (let i = 0; i < faceCount; i++) {
+  for (let i = 0, n = (isCubemap ? 6 : 1); i < n; i++) {
 
     const image = { width, height, format, mipmaps: [] }; 
     
@@ -115,15 +112,16 @@ export function parse(buffer, loadMipmaps) {
   
   const dds = new CompressedTexture();
   
-  if (faceCount === 6) {
+  dds.format = format;
+  dds.isCubemap = isCubemap;
+  
+  if (isCubemap) {
     
-    dds.isCubemap = true;
     dds.mipmaps = null;
     dds.image = images;
     
   } else {
     
-    dds.isCubemap = false;
     dds.mipmaps = images[0].mipmaps;
     dds.image = images[0];
     
@@ -133,24 +131,42 @@ export function parse(buffer, loadMipmaps) {
 
 }
 
+/**
+ * 
+ * Notes:
+ * 
+ * - The example DDS parser used by three.js checks the DDSD_MIPMAPCOUNT flag,
+ *   but according to https://msdn.microsoft.com/en-us/library/windows/desktop/bb943982(v=vs.85).aspx
+ *   that shouldn't be read. We're using the mipmapCount directly from the header.
+ * 
+ * @param buffer
+ * @returns {{format: *, width: *, height: *, faceCount: number, blockBytes: *, dataOffset: number, mipmapCount: *}}
+ */
 function parseHeader(buffer) {
 
-  const header = new Int32Array(buffer, 0, HEADER_LENGTH);
+  const header = new Int32Array(buffer, 0, 32);
 
-  const magic               = header[0];
-  const dataOffset          = header[1];
-  const flags               = header[2];
-  const height              = header[3];
-  const width               = header[4];
-  const mipmapCount         = header[7];
-  const pixelFormatFlags    = header[20];
-  const pixelFormatFourCC   = header[21];
-  const pixelFormatBitcount = header[22];
-  const pixelFormatRMask    = header[23];
-  const pixelFormatGMask    = header[24];
-  const pixelFormatBMask    = header[25];
-  const pixelFormatAMask    = header[26];
-  const capsFlags           = header[28];
+  const magic                  = header[0];
+  const size                   = header[1];
+  const flags                  = header[2];
+  const height                 = header[3];
+  const width                  = header[4];
+  const pitch                  = header[5];
+  const depth                  = header[6];
+  const mipmapCount            = header[7];
+  // Words 8-19 are reserved.
+  const pixelFormatFlags       = header[20];
+  const pixelFormatFourCC      = header[21];
+  const pixelFormatRGBBitcount = header[22];
+  const pixelFormatRMask       = header[23];
+  const pixelFormatGMask       = header[24];
+  const pixelFormatBMask       = header[25];
+  const pixelFormatAMask       = header[26];
+  const caps1Flags             = header[27];
+  const caps2Flags             = header[28];
+  const caps3Flags             = header[29];
+  const caps4Flags             = header[30];
+  // Word 31 is reserved.
 
   // Check if the buffer is a DDS file.
   if (magic !== DDS_MAGIC) {
@@ -189,7 +205,7 @@ function parseHeader(buffer) {
     
     default:
       
-      if (pixelFormatBitcount === 32 &&
+      if (pixelFormatRGBBitcount === 32 &&
           pixelFormatAMask & 0xff000000 &&
           pixelFormatRMask & 0x00ff0000 &&
           pixelFormatGMask & 0x0000ff00 &&
@@ -202,34 +218,27 @@ function parseHeader(buffer) {
 
   }
 
-  // The raw data offset is off.
-  const correctedDataOffset = dataOffset + 4;
-
-  // Make sure the mipmap count is reliable by checking the flags.
-  const correctedMipmapCount = (flags & DDS_FLAG_MIPCOUNT) ? Math.max(1, mipmapCount) : 1;
-
+  const dataOffset = header.byteLength;
+  
+  // Make sure the mipmap count is a number.
+  const correctedMipmapCount = Math.max(1, mipmapCount);
+  
   // Check if the texture is a cubemap.
-  const faceCount = (capsFlags & DDS_CAPS_FLAG_CUBEMAP) ? 6 : 1;
+  const isCubemap = (caps2Flags & DDS_CAPS_FLAG_CUBEMAP) ? true : false;
 
   // Check if the texture is missing any cubemap faces.
-  if (faceCount === 6 && !(capsFlags & DDS_CAPS_FLAG_CUBEMAP_POSITIVEX) &&
-    !(capsFlags & DDS_CAPS_FLAG_CUBEMAP_NEGATIVEX) &&
-    !(capsFlags & DDS_CAPS_FLAG_CUBEMAP_POSITIVEY) &&
-    !(capsFlags & DDS_CAPS_FLAG_CUBEMAP_NEGATIVEY) &&
-    !(capsFlags & DDS_CAPS_FLAG_CUBEMAP_POSITIVEZ) &&
-    !(capsFlags & DDS_CAPS_FLAG_CUBEMAP_NEGATIVEZ)) {
+  if (isCubemap && !(caps2Flags & DDS_CAPS_FLAG_CUBEMAP_POSITIVEX) &&
+                   !(caps2Flags & DDS_CAPS_FLAG_CUBEMAP_NEGATIVEX) &&
+                   !(caps2Flags & DDS_CAPS_FLAG_CUBEMAP_POSITIVEY) &&
+                   !(caps2Flags & DDS_CAPS_FLAG_CUBEMAP_NEGATIVEY) &&
+                   !(caps2Flags & DDS_CAPS_FLAG_CUBEMAP_POSITIVEZ) &&
+                   !(caps2Flags & DDS_CAPS_FLAG_CUBEMAP_NEGATIVEZ)) {
 
     throw new Error('Incomplete cubemap faces');
 
   }
-
-  return {
-
-    format, width, height, faceCount, blockBytes,
-    mipmapCount: correctedMipmapCount,
-    dataOffset:  correctedDataOffset,
-
-  };
+  
+  return { format, width, height, isCubemap, blockBytes, dataOffset, mipmapCount: correctedMipmapCount };
 
 }
 
