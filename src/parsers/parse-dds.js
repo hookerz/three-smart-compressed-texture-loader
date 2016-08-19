@@ -217,7 +217,7 @@ function parseHeader(buffer) {
       } else throw new Error('Unsupported FourCC code ', int32ToFourCC(pixelFormatFourCC));
 
   }
-
+ 
   const dataOffset = header.byteLength;
   
   // Make sure the mipmap count is a number.
