@@ -1,4 +1,4 @@
-import three from 'three';
+import * as three from 'three';
 import { SmartCompressedTextureLoader } from '../src';
 
 const renderer = new three.WebGLRenderer();
@@ -9,18 +9,31 @@ camera.position.z = 6;
 
 const scene = new three.Scene();
 
-const mat = new three.MeshStandardMaterial({ color: 0xff0000 });
-const geo = new three.BoxBufferGeometry();
+const geo = new three.BoxBufferGeometry(1, 1, 1);
+const mat = new three.MeshBasicMaterial({ color: 0xffffff });
 const cube = new three.Mesh(geo, mat);
 scene.add(cube);
-
 
 function start() {
 
   document.body.appendChild(renderer.domElement);
 
   const loader = new SmartCompressedTextureLoader();
-  loader.load('./textures/shannon.png', (texture) => cube.material.map = texture);
+  loader.load('./textures/shannon.png', (texture) => {
+      
+    console.log('loaded', texture);
+    cube.material.map = texture;
+    cube.material.needsUpdate = true;
+    
+  }, (progress) => {
+    
+    console.log('progress', progress);
+    
+  }, (error) => {
+  
+    console.error('failed', error);
+    
+  });
   
   resize();
   render();
