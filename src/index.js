@@ -20,7 +20,9 @@ const SupportedTextureEncoding = (function() {
   
   const extensions = new WebGLExtensions(gl);
   
-  return Object.values(CompressedTextureEncoding).filter(ext => extensions.get(ext));
+  return Object.keys(CompressedTextureEncoding)
+    .map(key => CompressedTextureEncoding[key])
+    .filter(val => extensions.get(val));
   
 })();
 
