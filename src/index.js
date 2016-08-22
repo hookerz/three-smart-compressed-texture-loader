@@ -159,7 +159,7 @@ function loadTextureAsEncoding(url, encoding, loader, texture, onLoad, onProgres
 
     try {
 
-      parsedBuffer = parse(buffer);
+      parsedBuffer = parse(buffer, true);
 
     } catch(error) {
 
