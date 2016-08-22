@@ -123,7 +123,8 @@ export function parse(buffer, loadMipmaps) {
   } else {
     
     dds.mipmaps = images[0].mipmaps;
-    dds.image = images[0];
+    dds.image.width = images[0].width;
+    dds.image.height = images[0].height;
     
   }
 

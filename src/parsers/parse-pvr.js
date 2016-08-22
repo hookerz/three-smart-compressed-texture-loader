@@ -74,7 +74,8 @@ export function parse(buffer, loadMipmaps) {
   } else {
 
     pvr.mipmaps = images[0].mipmaps;
-    pvr.image = images[0];
+    pvr.image.width = images[0].width;
+    pvr.image.height = images[0].height;
     
   }
   
