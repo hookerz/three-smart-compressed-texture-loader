@@ -41,8 +41,8 @@ Object.assign(SmartCompressedTextureLoader.prototype, {
   
   load: function (url, onLoad, onProgress, onError) {
     
-    const loader = new XHRLoader();
     const texture = new Texture();
+    const loader = new XHRLoader(this.manager);
 
     loader.setPath(this.path);
     loader.setResponseType('arraybuffer');
