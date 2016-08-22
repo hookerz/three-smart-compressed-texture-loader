@@ -41,8 +41,8 @@ Object.assign(SmartCompressedTextureLoader.prototype, {
   
   load: function (url, onLoad, onProgress, onError) {
     
-    const texture = new Texture();
     const loader = new XHRLoader(this.manager);
+    const texture = new CompressedTexture();
 
     loader.setPath(this.path);
     loader.setResponseType('arraybuffer');
@@ -53,7 +53,7 @@ Object.assign(SmartCompressedTextureLoader.prototype, {
     
     function innerOnLoad(tex) {
       
-      texture.clone(tex);
+      texture.copy(tex);
       texture.needsUpdate = true;
 
       if (onLoad !== undefined) onLoad(texture);
