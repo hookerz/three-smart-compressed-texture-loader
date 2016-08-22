@@ -1,5 +1,5 @@
 import * as three from 'three';
-import { SmartCompressedTextureLoader } from '../src';
+import { SmartCompressedTextureLoader, CompressedTextureEncoding } from '../src';
 
 const renderer = new three.WebGLRenderer();
 renderer.setClearColor(0x0);
@@ -19,6 +19,10 @@ function start() {
   document.body.appendChild(renderer.domElement);
 
   const loader = new SmartCompressedTextureLoader();
+  
+  // Exclude ETC1 and ATC from the supported encodings.
+  loader.setSupportedEncodings([ CompressedTextureEncoding.S3TC, CompressedTextureEncoding.PVRTC ]);
+  
   loader.load('./textures/shannon.png', (texture) => {
       
     console.log('loaded', texture);

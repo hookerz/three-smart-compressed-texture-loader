@@ -13,11 +13,13 @@ export const CompressedTextureEncoding = {
 };
 
 // Filter the texture extensions for the ones supported by the platform.
-const SupportedTextureEncoding = (function() {
+const SupportedTextureEncodings = (function() {
 
   const el = document.createElement('canvas');
   const gl = el.getContext('webgl') || el.getContext('experimental-webgl');
   
+  // We're not querying the gl instance directly because thee three.js
+  // WebGLExtensions class takes care of some vendor prefixing for us.
   const extensions = new WebGLExtensions(gl);
   
   return Object.keys(CompressedTextureEncoding)
@@ -32,8 +34,9 @@ const SupportedTextureEncoding = (function() {
  * @constructor
  */
 function SmartCompressedTextureLoader(manager = DefaultLoadingManager) {
-
-  this.manager = manager;
+  
+  this.encodings = SupportedTextureEncodings;
+  this.manager   = manager;
   
 }
 
@@ -49,7 +52,7 @@ Object.assign(SmartCompressedTextureLoader.prototype, {
     loader.setWithCredentials(this.withCredentials);
 
     // Copy the extensions so we can iterate through them.
-    const encodings = SupportedTextureEncoding.concat();
+    const encodings = this.encodings.concat();
     
     function innerOnLoad(tex) {
       
@@ -70,16 +73,34 @@ Object.assign(SmartCompressedTextureLoader.prototype, {
     
     function loadNextEncoding() {
       
-      if (encodings.length === 0) onError(/* TODO error object */);
+      if (encodings.length === 0) {
+        
+        onError(/* TODO error object */);
       
-      const encoding = encodings.shift();
-      loadTextureAsEncoding(url, encoding, loader, texture, innerOnLoad, onProgress, innerOnError);
-
+      } else {
+        
+        const encoding = encodings.shift();
+        loadTextureAsEncoding(url, encoding, loader, texture, innerOnLoad, onProgress, innerOnError);
+        
+      }
+      
     }
     
     loadNextEncoding();
     
     return texture;
+    
+  },
+
+  /**
+   * 
+   * @param {Array} encodings - A list of encodings to attempt when loading textures.
+   */
+  setSupportedEncodings: function (encodings) {
+    
+    // Union the desired encodings with the actual supported encodings. We
+    // don't want to load an encoding that can't be read by the GPU.
+    this.encodings = encodings.filter(enc => SupportedTextureEncodings.indexOf(enc) >= 0);
     
   },
   
