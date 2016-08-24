@@ -1,5 +1,4 @@
 import { Texture, CompressedTexture, XHRLoader, DefaultLoadingManager, WebGLExtensions } from 'three';
-import { parse as parseATC } from './parsers/parse-atc';
 import { parse as parseDDS } from './parsers/parse-dds';
 import { parse as parsePVR } from './parsers/parse-pvr';
 
