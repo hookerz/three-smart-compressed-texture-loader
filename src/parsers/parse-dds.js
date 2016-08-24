@@ -1,6 +1,6 @@
 // Adapted from https://github.com/toji/texture-tester/blob/master/js/webgl-texture-util.js
 
-import { CompressedTexture, RGB_ATC_Format, RGBA_ATC_EXPLICIT_Format, RGBA_ATC_INTERPOLATED_Format, RGB_S3TC_DXT1_Format, RGBA_S3TC_DXT3_Format, RGBA_S3TC_DXT5_Format, RGB_ETC1_Format } from 'three';
+import { CompressedTexture, RGB_ATC_Format, RGBA_ATC_EXPLICIT_Format, RGBA_ATC_INTERPOLATED_Format, RGB_S3TC_DXT1_Format, RGBA_S3TC_DXT3_Format, RGBA_S3TC_DXT5_Format, RGB_ETC1_Format, RGBAFormat } from 'three';
 
 // Translate four chars to an integer.
 const fourCCToInt32 = value =>
