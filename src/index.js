@@ -56,6 +56,7 @@ Object.assign(SmartCompressedTextureLoader.prototype, {
     function innerOnLoad(tex) {
       
       texture.copy(tex);
+      texture.sourceFile = tex.sourceFile;
       texture.needsUpdate = true;
 
       if (onLoad !== undefined) onLoad(texture);
@@ -175,11 +176,12 @@ function loadTextureAsEncoding(url, encoding, loader, texture, onLoad, onProgres
   // Parse the buffer and pass the texture data to the original load handler.
   function parseOnLoad(buffer) {
 
-    let parsedBuffer;
+    let image;
 
     try {
 
-      parsedBuffer = parse(buffer, true);
+      image = parse(buffer, true);
+      image.sourceFile = encodingURL;
 
     } catch(error) {
 
@@ -187,8 +189,9 @@ function loadTextureAsEncoding(url, encoding, loader, texture, onLoad, onProgres
       onError(/* TODO interpret error object */);
 
     }
-
-    onLoad(parsedBuffer);
+  
+    // Run the load callback outside of the try so we only catch parse errors.
+    onLoad(image);
 
   }
 
