@@ -55,6 +55,10 @@ Object.assign(SmartCompressedTextureLoader.prototype, {
     
     function innerOnLoad(tex) {
       
+      // Copy the loaded/parsed texture into the texture reference immediately
+      // returned by the load function and flag it for updating. The sourceFile
+      // prop has to be copied manually.
+      
       texture.copy(tex);
       texture.sourceFile = tex.sourceFile;
       texture.needsUpdate = true;
@@ -63,10 +67,11 @@ Object.assign(SmartCompressedTextureLoader.prototype, {
 
     }
     
-    function innerOnError(event) {
+    function innerOnError(err) {
       
       // TODO support falling back to the original URL
       
+      console.warn(err);
       loadNextEncoding();
       
     }
@@ -75,7 +80,8 @@ Object.assign(SmartCompressedTextureLoader.prototype, {
       
       if (encodings.length === 0) {
         
-        onError(/* TODO error object */);
+        const err = new Error('Unable to find a supported encoding at ' + url);
+        onError(err);
       
       } else {
         
@@ -186,7 +192,10 @@ function loadTextureAsEncoding(url, encoding, loader, texture, onLoad, onProgres
     } catch(error) {
 
       // Only catch parse errors here.
-      onError(/* TODO interpret error object */);
+      const err = new Error('Unable to parse ' + encodingURL);
+      err.stack += '\nCaused by: ' + error.stack;
+      
+      onError(err);
 
     }
   
