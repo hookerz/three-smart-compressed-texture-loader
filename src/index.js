@@ -152,17 +152,17 @@ function loadTextureAsEncoding(url, encoding, loader, texture, onLoad, onProgres
   switch (encoding) {
 
     case CompressedTextureEncoding.ATC:
-      extension = 'atc';
-      parse = parseATC;
+      extension = 'atc.dds';
+      parse = parseDDS;
       break;
 
     case CompressedTextureEncoding.ETC1:
-      extension = 'etc';
+      extension = 'etc.dds';
       parse = parseDDS;
       break;
 
     case CompressedTextureEncoding.S3TC:
-      extension = 'dds';
+      extension = 'dxt.dds';
       parse = parseDDS;
       break;
 
