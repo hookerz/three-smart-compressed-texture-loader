@@ -1,4 +1,4 @@
-// Adapted from https://github.com/mrdoob/three.js/blob/dev/examples/js/loaders/PVRLoader.js
+// Adapted from https://github.com/toji/texture-tester/blob/master/js/webgl-texture-util.js
 
 import { CompressedTexture, RGB_PVRTC_2BPPV1_Format, RGBA_PVRTC_2BPPV1_Format, RGB_PVRTC_4BPPV1_Format, RGBA_PVRTC_4BPPV1_Format } from 'three';
 

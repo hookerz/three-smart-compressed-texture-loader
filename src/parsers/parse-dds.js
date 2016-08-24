@@ -1,4 +1,4 @@
-// Adapted from https://github.com/mrdoob/three.js/blob/dev/examples/js/loaders/DDSLoader.js
+// Adapted from https://github.com/toji/texture-tester/blob/master/js/webgl-texture-util.js
 
 import { CompressedTexture, RGB_ATC_Format, RGBA_ATC_EXPLICIT_Format, RGBA_ATC_INTERPOLATED_Format, RGB_S3TC_DXT1_Format, RGBA_S3TC_DXT3_Format, RGBA_S3TC_DXT5_Format, RGB_ETC1_Format } from 'three';
 
