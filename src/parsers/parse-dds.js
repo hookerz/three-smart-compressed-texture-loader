@@ -1,6 +1,6 @@
 // Adapted from https://github.com/mrdoob/three.js/blob/dev/examples/js/loaders/DDSLoader.js
 
-import { CompressedTexture, RGB_S3TC_DXT1_Format, RGBA_S3TC_DXT3_Format, RGBA_S3TC_DXT5_Format, RGB_ETC1_Format, RGBAFormat } from 'three';
+import { CompressedTexture, RGB_ATC_Format, RGBA_ATC_EXPLICIT_Format, RGBA_ATC_INTERPOLATED_Format, RGB_S3TC_DXT1_Format, RGBA_S3TC_DXT3_Format, RGBA_S3TC_DXT5_Format, RGB_ETC1_Format } from 'three';
 
 // Translate four chars to an integer.
 const fourCCToInt32 = value =>
@@ -46,6 +46,9 @@ const FOURCC_DXT1 = fourCCToInt32('DXT1');
 const FOURCC_DXT3 = fourCCToInt32('DXT3');
 const FOURCC_DXT5 = fourCCToInt32('DXT5');
 const FOURCC_ETC1 = fourCCToInt32('ETC1');
+const FOURCC_ATC  = fourCCToInt32('ATC ');
+const FOURCC_ATCA = fourCCToInt32('ATCA');
+const FOURCC_ATCI = fourCCToInt32('ATCI');
 
 /**
  * Parse a DDS buffer.
@@ -202,6 +205,21 @@ function parseHeader(buffer) {
     case FOURCC_ETC1:
       format = RGB_ETC1_Format;
       blockBytes = 8;
+      break;
+    
+    case FOURCC_ATC:
+      format = RGB_ATC_Format;
+      blockBytes = 8;
+      break;
+    
+    case FOURCC_ATCI:
+      format = RGBA_ATC_INTERPOLATED_Format;
+      blockBytes = 16;
+      break;
+    
+    case FOURCC_ATCA:
+      format = RGBA_ATC_EXPLICIT_Format;
+      blockBytes = 16;
       break;
     
     default:

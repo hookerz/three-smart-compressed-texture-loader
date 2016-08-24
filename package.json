@@ -9,7 +9,7 @@
   "author": "Chris Parker <parker@byhook.com>",
   "license": "MIT",
   "dependencies": {
-    "three": "^0.80.0"
+    "three": "seeep/three.js#dev-build"
   },
   "devDependencies": {
     "babel-cli": "^6.11.4",
